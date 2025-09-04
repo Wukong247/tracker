@@ -48,7 +48,7 @@ pub struct FidelityProof {
 /// Metadata shared by the maker with the Directory Server for verifying authenticity.
 #[derive(Serialize, Deserialize, Debug)]
 #[allow(private_interfaces)]
-pub struct DnsMetadata {
+pub struct TrackerMetadata {
     /// The maker's URL.
     pub url: String,
     /// Proof of the maker's fidelity bond funding.
@@ -61,7 +61,7 @@ pub enum TrackerClientToServer {
     /// A request sent by the maker to register itself with the DNS server and authenticate.
     Post {
         /// Metadata containing the maker's URL and fidelity proof.
-        metadata: DnsMetadata,
+        metadata: TrackerMetadata,
     },
     /// A request sent by the taker to fetch all valid maker addresses from the DNS server.
     Get,
