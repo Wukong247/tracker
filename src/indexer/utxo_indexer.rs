@@ -3,7 +3,7 @@ use std::sync::Arc;
 use crate::db::model::{MempoolInput, MempoolTx, Utxo};
 use crate::db::schema::{mempool_inputs, mempool_tx, utxos};
 use crate::indexer::rpc::BitcoinRpc;
-use chrono::NaiveDateTime;
+use chrono::{NaiveDateTime, Utc};
 use diesel::SqliteConnection;
 use diesel::prelude::*;
 use diesel::r2d2::ConnectionManager;
@@ -30,7 +30,7 @@ impl<'a> Indexer<'a> {
 
             for input in &tx.input {
                 let prevout = &input.previous_output;
-                diesel::insert_into(mempool_inputs::table)
+                diesel::insert_or_ignore_into(mempool_inputs::table)
                     .values(&MempoolInput {
                         txid: txid.to_string(),
                         input_txid: prevout.txid.to_string(),
@@ -40,7 +40,7 @@ impl<'a> Indexer<'a> {
                     .unwrap();
 
                 self.mark_utxo_spent(
-                    &txid.to_string(),
+                    &prevout.txid.to_string(),
                     prevout.vout as i32,
                     Some(&txid.to_string()),
                     false,
@@ -106,7 +106,7 @@ impl<'a> Indexer<'a> {
         diesel::insert_or_ignore_into(mempool_tx::table)
             .values(&MempoolTx {
                 txid: txid.to_string(),
-                seen_at: NaiveDateTime::MIN,
+                seen_at: Utc::now().naive_utc(),
             })
             .execute(&mut conn)
             .unwrap();

@@ -54,13 +54,16 @@ pub async fn run(
             DbRequest::WatchUtxo(outpoint, resp_tx) => {
                 info!("Watch utxo intercepted");
 
-                let mempool_tx = mempool_tx::table
+                let mut mempool_tx = mempool_tx::table
                     .inner_join(mempool_inputs::table.on(mempool_tx::txid.eq(mempool_inputs::txid)))
                     .filter(mempool_inputs::input_txid.eq(outpoint.txid.to_string()))
                     .filter(mempool_inputs::input_vout.eq(outpoint.vout as i32))
                     .select((mempool_tx::txid, mempool_tx::seen_at))
                     .load::<MempoolTx>(&mut conn)
                     .unwrap();
+
+                mempool_tx.sort_by(|a, b| a.txid.cmp(&b.txid));
+                mempool_tx.dedup_by(|a, b| a.txid == b.txid);
 
                 let _ = resp_tx.send(mempool_tx).await;
             }

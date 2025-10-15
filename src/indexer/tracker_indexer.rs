@@ -61,7 +61,10 @@ pub async fn run(
             }
         }
         last_tip = tip_height;
+        #[cfg(not(feature = "integration-test"))]
         tokio::time::sleep(Duration::from_secs(10)).await;
+        #[cfg(feature = "integration-test")]
+        tokio::time::sleep(Duration::from_millis(100)).await;
     }
 }
 

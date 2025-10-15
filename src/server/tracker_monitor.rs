@@ -21,7 +21,7 @@ use crate::{
 
 use tokio::io::BufReader;
 
-const COOLDOWN_PERIOD: u64 = 5;
+const COOLDOWN_PERIOD: u64 = 15 * 60;
 pub async fn monitor_systems(
     db_tx: Sender<DbRequest>,
     status_tx: status::Sender,
@@ -73,7 +73,9 @@ pub async fn monitor_systems(
                             };
                             _ = send_message_with_prefix(&mut writer, &message).await;
 
-                            let buffer = handle_result!(status_tx, read_message(&mut reader).await);
+                            let Ok(buffer) = read_message(&mut reader).await else {
+                                continue;
+                            };
                             let response: TrackerClientToServer =
                                 match serde_cbor::de::from_reader(&buffer[..]) {
                                     Ok(resp) => resp,
@@ -114,7 +116,7 @@ pub async fn monitor_systems(
                     let _ = db_tx.send(DbRequest::Update(address, updated_info)).await;
                 }
             }
-            sleep(Duration::from_secs(4)).await;
+            sleep(Duration::from_secs(COOLDOWN_PERIOD)).await;
         }
     }
 }

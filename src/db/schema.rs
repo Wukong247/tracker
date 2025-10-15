@@ -1,8 +1,7 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
-    mempool_inputs (rowid) {
-        rowid -> Integer,
+    mempool_inputs (txid, input_txid, input_vout) {
         txid -> Text,
         input_txid -> Text,
         input_vout -> Integer,

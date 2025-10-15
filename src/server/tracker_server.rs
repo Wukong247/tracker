@@ -1,4 +1,5 @@
 use crate::db::model::MempoolTx;
+use crate::server::send_message_with_prefix;
 use crate::server::tracker_monitor::monitor_systems;
 use crate::status;
 use crate::types::DbRequest;
@@ -120,7 +121,7 @@ async fn handle_client(mut stream: TcpStream, db_tx: Sender<DbRequest>) {
 
                 if let Some(mempool_tx) = response {
                     let message = TrackerServerToClient::WatchResponse { mempool_tx };
-                    if let Err(e) = send_message(&mut writer, &message).await {
+                    if let Err(e) = send_message_with_prefix(&mut writer, &message).await {
                         error!("Failed to send response to client: {e}");
                         break;
                     }
